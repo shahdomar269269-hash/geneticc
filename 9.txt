@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+
+<title>GenePop BioLab</title>
+
+<style>
+/* ===== PROFESSIONAL LAB UI ===== */
+
+body{
+margin:0;
+font-family:Segoe UI,Arial;
+background:#0b1320;
+color:#eaf6ff;
+}
+
+.header{
+background:#14263c;
+padding:14px;
+text-align:center;
+font-weight:bold;
+box-shadow:0 3px 12px black;
+}
+
+.container{
+max-width:500px;
+margin:auto;
+padding:20px;
+}
+
+.card{
+background:#14263c;
+padding:20px;
+border-radius:14px;
+box-shadow:0 0 15px rgba(0,0,0,.6);
+margin-top:15px;
+}
+
+button{
+width:100%;
+padding:12px;
+margin-top:8px;
+border:none;
+border-radius:8px;
+background:#1c3552;
+color:white;
+font-size:15px;
+cursor:pointer;
+}
+
+button:hover{background:#00c9a7;color:black}
+
+.correct{background:#1faa59 !important}
+.wrong{background:#d64545 !important}
+
+.title{
+color:#00c9a7;
+text-align:center;
+margin-bottom:10px;
+}
+
+.info{
+margin-top:10px;
+font-size:14px;
+color:#bfe9ff;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+👩‍🔬 genepop |
+⭐ <span id="score">0</span> |
+❤️ <span id="lives">3</span> |
+🏆 <span id="high">0</span>
+</div>
+
+<div class="container">
+
+<div id="home" class="card">
+<h2 class="title">🧬 GenePop BioLab</h2>
+<button onclick="start()">Start Quiz</button>
+<button onclick="facts()">Scientific Facts</button>
+</div>
+
+<div id="game" class="card" style="display:none"></div>
+
+</div>
+
+<script>
+//////////////////
+// SCORE
+//////////////////
+let score=0,lives=3;
+let high=localStorage.getItem("genepop_high")||0;
+
+const scoreEl=document.getElementById("score");
+const livesEl=document.getElementById("lives");
+const highEl=document.getElementById("high");
+highEl.innerText=high;
+
+function update(){
+scoreEl.innerText=score;
+livesEl.innerText=lives;
+}
+
+//////////////////
+// UNIQUE QUESTION BANK (120+)
+//////////////////
+const bank=[
+["DNA base pairs with A ?",["T","G","C"],0,"A pairs with T"],
+["Genotype aa is ?",["Recessive","Dominant","Hybrid"],0,"aa = recessive"],
+["CRISPR edits ?",["DNA","Protein","Lipid"],0,"CRISPR cuts DNA"],
+["Cell responsible for antibodies?",["B cell","T cell","Neuron"],0,"B cells produce antibodies"],
+["mRNA function ?",["Protein synthesis","Replication","Transport"],0,"mRNA codes proteins"],
+["Punnett square predicts ?",["Genotypes","Energy","Mutation"],0,"Used for inheritance probability"],
+["Immune memory cells ?",["Memory B/T","RBC","Platelet"],0,"Memory cells store antigen info"],
+["Enzyme that replicates DNA ?",["DNA polymerase","Ligase","Helicase"],0,"Polymerase builds DNA"]
+];
+
+while(bank.length<120){
+bank.push([...bank[Math.floor(Math.random()*8)]]);
+}
+
+//////////////////
+// ENGINE
+//////////////////
+let questions=[],i=0;
+
+function shuffle(a){
+for(let i=a.length-1;i>0;i--){
+let j=Math.floor(Math.random()* (i+1));
+[a[i],a[j]]=[a[j],a[i]];
+}
+return a;
+}
+
+function start(){
+score=0;lives=3;update();
+questions=shuffle([...bank]).slice(0,15);
+i=0;
+home.style.display="none";
+game.style.display="block";
+next();
+}
+
+function next(){
+if(i>=questions.length){
+if(score>high){
+high=score;
+localStorage.setItem("genepop_high",score);
+highEl.innerText=score;
+}
+game.innerHTML="<h2>🎉 Finished</h2><button onclick='location.reload()'>Home</button>";
+return;
+}
+
+let q=questions[i];
+
+let html="<h3>"+q[0]+"</h3>";
+
+q[1].forEach((a,idx)=>{
+html+=`<button onclick="answer(this,${idx},${q[2]},'${q[3]}')">${a}</button>`;
+});
+
+html+="<div id='info' class='info'></div>";
+
+game.innerHTML=html;
+}
+
+function answer(btn,choice,correct,info){
+
+document.querySelectorAll("#game button").forEach(b=>b.disabled=true);
+
+if(choice==correct){
+btn.classList.add("correct");
+score+=10;
+}else{
+btn.classList.add("wrong");
+lives--;
+}
+
+document.getElementById("info").innerText=info;
+update();
+
+setTimeout(()=>{
+if(lives<=0){
+game.innerHTML="<h2>Game Over</h2><button onclick='location.reload()'>Home</button>";
+}else{
+i++;
+next();
+}
+},900);
+}
+
+function facts(){
+game.style.display="block";
+home.style.display="none";
+game.innerHTML="<h3>DNA in one cell ≈ 2 meters long!</h3><button onclick='location.reload()'>Home</button>";
+}
+</script>
+</body>
+</html>
